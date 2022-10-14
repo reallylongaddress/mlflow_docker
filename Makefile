@@ -1,55 +1,78 @@
-# ----------------------------------
-#          INSTALL & TEST
-# ----------------------------------
-install_requirements:
-	@pip install -r requirements.txt
 
-check_code:
-	@flake8 scripts/* mlflow/*.py
+PROJECT_ID=lw-airbnb-mlflow
+#1081851847520
+DOCKER_IMAGE_NAME=lw_airbnb_mlflow_20221014
 
-black:
-	@black scripts/* mlflow/*.py
+docker_build:
+#copy the model before docker-compose because Docker can not go 'up' directories easily to copy files
+	@docker build -t ${DOCKER_IMAGE_NAME} .
 
-test:
-	@coverage run -m pytest tests/*.py
-	@coverage report -m --omit="${VIRTUAL_ENV}/lib/python*"
+docker_run:
+	@docker run -p 8080:8080 ${DOCKER_IMAGE_NAME}
 
-ftest:
-	@Write me
+docker_run_i:
+	@docker run -it ${DOCKER_IMAGE_NAME} sh
 
-clean:
-	@rm -f */version.txt
-	@rm -f .coverage
-	@rm -fr */__pycache__ */*.pyc __pycache__
-	@rm -fr build dist
-	@rm -fr mlflow-*.dist-info
-	@rm -fr mlflow.egg-info
+#upload image info and build on GCloud
+docker_build_gcp_in_cloud:
+	@gcloud builds submit -t gcr.io/${PROJECT_ID}/${DOCKER_IMAGE_NAME} .
 
-install:
-	@pip install . -U
+run_gcp:
+#have to run docker_build_gcp_in_cloud first (or docker_build_gcp_local and upload)
+	gcloud run deploy --image gcr.io/${PROJECT_ID}/${DOCKER_IMAGE_NAME} --platform managed --region us-central-1
 
-all: clean install test black check_code
+# # ----------------------------------
+# #          INSTALL & TEST
+# # ----------------------------------
+# install_requirements:
+# 	@pip install -r requirements.txt
 
-count_lines:
-	@find ./ -name '*.py' -exec  wc -l {} \; | sort -n| awk \
-        '{printf "%4s %s\n", $$1, $$2}{s+=$$0}END{print s}'
-	@echo ''
-	@find ./scripts -name '*-*' -exec  wc -l {} \; | sort -n| awk \
-		        '{printf "%4s %s\n", $$1, $$2}{s+=$$0}END{print s}'
-	@echo ''
-	@find ./tests -name '*.py' -exec  wc -l {} \; | sort -n| awk \
-        '{printf "%4s %s\n", $$1, $$2}{s+=$$0}END{print s}'
-	@echo ''
+# check_code:
+# 	@flake8 scripts/* mlflow/*.py
 
-# ----------------------------------
-#      UPLOAD PACKAGE TO PYPI
-# ----------------------------------
-PYPI_USERNAME=<AUTHOR>
-build:
-	@python setup.py sdist bdist_wheel
+# black:
+# 	@black scripts/* mlflow/*.py
 
-pypi_test:
-	@twine upload -r testpypi dist/* -u $(PYPI_USERNAME)
+# test:
+# 	@coverage run -m pytest tests/*.py
+# 	@coverage report -m --omit="${VIRTUAL_ENV}/lib/python*"
 
-pypi:
-	@twine upload dist/* -u $(PYPI_USERNAME)
+# ftest:
+# 	@Write me
+
+# clean:
+# 	@rm -f */version.txt
+# 	@rm -f .coverage
+# 	@rm -fr */__pycache__ */*.pyc __pycache__
+# 	@rm -fr build dist
+# 	@rm -fr mlflow-*.dist-info
+# 	@rm -fr mlflow.egg-info
+
+# install:
+# 	@pip install . -U
+
+# all: clean install test black check_code
+
+# count_lines:
+# 	@find ./ -name '*.py' -exec  wc -l {} \; | sort -n| awk \
+#         '{printf "%4s %s\n", $$1, $$2}{s+=$$0}END{print s}'
+# 	@echo ''
+# 	@find ./scripts -name '*-*' -exec  wc -l {} \; | sort -n| awk \
+# 		        '{printf "%4s %s\n", $$1, $$2}{s+=$$0}END{print s}'
+# 	@echo ''
+# 	@find ./tests -name '*.py' -exec  wc -l {} \; | sort -n| awk \
+#         '{printf "%4s %s\n", $$1, $$2}{s+=$$0}END{print s}'
+# 	@echo ''
+
+# # ----------------------------------
+# #      UPLOAD PACKAGE TO PYPI
+# # ----------------------------------
+# PYPI_USERNAME=<AUTHOR>
+# build:
+# 	@python setup.py sdist bdist_wheel
+
+# pypi_test:
+# 	@twine upload -r testpypi dist/* -u $(PYPI_USERNAME)
+
+# pypi:
+# 	@twine upload dist/* -u $(PYPI_USERNAME)
