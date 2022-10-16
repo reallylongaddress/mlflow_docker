@@ -54,6 +54,8 @@ Create a python3 virtualenv and activate it:
 sudo apt-get install virtualenv python-pip python-dev
 deactivate; virtualenv -ppython3 ~/venv ; source ~/venv/bin/activate
 ```
+https://getindata.com/blog/deploying-serverless-mlflow-google-cloud-platform-using-cloud-run/
+
 
 Clone the project and install it:
 
